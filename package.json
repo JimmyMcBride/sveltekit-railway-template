@@ -1,0 +1,9 @@
+{
+  "name": "sveltekit-railway-template",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "init": "bun run scripts/init-project.ts init",
+    "sync-urls": "bun run scripts/init-project.ts sync-urls"
+  }
+}
