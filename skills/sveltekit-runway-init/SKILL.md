@@ -19,6 +19,7 @@ Run the bootstrap from the repo root:
 The bootstrap:
 
 - uses the root folder name as the project name
+- uses that same name for the Railway app service
 - validates that `origin` points to GitHub
 - scaffolds SvelteKit + Bun + Tailwind in the current repo root
 - creates a Railway project
@@ -39,5 +40,7 @@ This command reloads bootstrap state from `.bootstrap/state.json`, refreshes Rai
 
 - This repo is a GitHub template repo, not a finished starter app.
 - The user clones their own repo before running init.
+- The cloned repo has been pushed to GitHub already.
+- The user's Railway account is linked to GitHub, and the Railway GitHub app can access the target repo.
 - Optional template-specific variables are entered interactively as `KEY=VALUE` lines during init.
 - Convex is self-hosted on Railway in this flow, not Convex Cloud.

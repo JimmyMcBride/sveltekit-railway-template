@@ -1,7 +1,6 @@
 export const NODE_ENGINE = "^20.19.0 || >=22.12.0";
 export const BOOTSTRAP_STATE_DIR = ".bootstrap";
 export const BOOTSTRAP_STATE_PATH = `${BOOTSTRAP_STATE_DIR}/state.json`;
-export const APP_SERVICE_NAME = "web";
 
 export const ALLOWED_TEMPLATE_ROOT_ENTRIES = new Set([
 	".git",

@@ -35,7 +35,7 @@ bun run sync-urls
 
 ## Template defaults
 
-- App service name: `web`
+- App service name: matches the project name
 - Convex template code: `convex`
 - Plausible template code: `mzYEXO`
 
@@ -49,5 +49,7 @@ RAILWAY_TEMPLATE_PLAUSIBLE=your-code bun run init -- --plausible
 ## Notes
 
 - `origin` must point at a GitHub repo before you run init.
+- That GitHub repo must already exist remotely and have at least one push.
 - Railway CLI auth must already be set up.
+- Your Railway account must be linked to GitHub, and the Railway GitHub app must have access to the repo you want to deploy.
 - Template-specific secrets are collected interactively during init as `KEY=VALUE` lines.

@@ -5,7 +5,6 @@ import { basename, resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
 import {
 	ALLOWED_TEMPLATE_ROOT_ENTRIES,
-	APP_SERVICE_NAME,
 	BOOTSTRAP_STATE_DIR,
 	BOOTSTRAP_STATE_PATH,
 	NODE_ENGINE,
@@ -193,7 +192,7 @@ async function runInit(cliOptions: CliOptions) {
 	run(["railway", "init", "--name", state.railway.projectName], context.rootDir);
 
 	logStep("Adding the app service");
-	run(["railway", "add", "--service", state.railway.appService.name, "--repo", state.repoSlug], context.rootDir);
+	addGitHubRepoService(context.rootDir, state);
 
 	if (state.options.convex) {
 		await deployTemplate(context.rootDir, "convex");
@@ -219,6 +218,7 @@ function validateInitEnvironment(): InitContext {
 	const rootDir = validateCommonEnvironment();
 	const repoUrl = runCapture(["git", "remote", "get-url", "origin"], rootDir).stdout.trim();
 	const repoSlug = parseGitHubRepoSlug(repoUrl);
+	ensureOriginRepoExists(rootDir);
 	const projectName = basename(rootDir);
 	const packageName = toPackageName(projectName);
 
@@ -228,6 +228,16 @@ function validateInitEnvironment(): InitContext {
 		repoSlug,
 		rootDir
 	};
+}
+
+function ensureOriginRepoExists(rootDir: string) {
+	try {
+		runCapture(["git", "ls-remote", "origin", "HEAD"], rootDir);
+	} catch {
+		throw new Error(
+			"`origin` must point to a GitHub repo that already exists and is accessible. Push the repo to GitHub before running init."
+		);
+	}
 }
 
 function validateCommonEnvironment() {
@@ -266,7 +276,7 @@ function createBootstrapState(context: InitContext, cliOptions: CliOptions): Boo
 		railway: {
 			projectName: context.projectName,
 			appService: {
-				name: APP_SERVICE_NAME
+				name: context.projectName
 			},
 			convex: cliOptions.convex
 				? {
@@ -324,6 +334,20 @@ async function deployTemplate(rootDir: string, key: OptionalTemplateKey) {
 
 	logStep(`Deploying ${template.displayName}`);
 	run(command, rootDir);
+}
+
+function addGitHubRepoService(rootDir: string, state: BootstrapState) {
+	try {
+		run(["railway", "add", "--service", state.railway.appService.name, "--repo", state.repoSlug], rootDir);
+	} catch {
+		throw new Error(
+			[
+				`Railway could not connect the GitHub repo "${state.repoSlug}" as the app service.`,
+				"Make sure the repo is pushed, your Railway account is linked to GitHub, and the Railway GitHub app has access to that repo or org.",
+				"Then rerun `bun run init --`."
+			].join("\n")
+		);
+	}
 }
 
 async function collectTemplateVariables(displayName: string) {
