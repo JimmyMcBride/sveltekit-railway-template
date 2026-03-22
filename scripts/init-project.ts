@@ -190,18 +190,10 @@ async function runInit(cliOptions: CliOptions) {
 	saveState(context.rootDir, state);
 
 	logStep("Creating Railway project");
-	const initResult = runJson(["railway", "init", "--name", state.railway.projectName, "--json"], context.rootDir);
-	const maybeProject = findNamedEntity(initResult);
-	if (maybeProject?.id) {
-		state.railway.projectId = maybeProject.id;
-		saveState(context.rootDir, state);
-	}
+	run(["railway", "init", "--name", state.railway.projectName], context.rootDir);
 
 	logStep("Adding the app service");
-	runJson(
-		["railway", "add", "--service", state.railway.appService.name, "--repo", state.repoSlug, "--json"],
-		context.rootDir
-	);
+	run(["railway", "add", "--service", state.railway.appService.name, "--repo", state.repoSlug], context.rootDir);
 
 	if (state.options.convex) {
 		await deployTemplate(context.rootDir, "convex");
@@ -526,39 +518,6 @@ function parseGitHubRepoSlug(remote: string) {
 	throw new Error("`origin` must point to a GitHub repository");
 }
 
-function findNamedEntity(raw: unknown): { id?: string; name?: string } | undefined {
-	if (!raw || typeof raw !== "object") {
-		return undefined;
-	}
-
-	if (Array.isArray(raw)) {
-		for (const entry of raw) {
-			const found = findNamedEntity(entry);
-			if (found?.name || found?.id) {
-				return found;
-			}
-		}
-		return undefined;
-	}
-
-	const record = raw as Record<string, unknown>;
-	if (typeof record.id === "string" || typeof record.name === "string") {
-		return {
-			id: typeof record.id === "string" ? record.id : undefined,
-			name: typeof record.name === "string" ? record.name : undefined
-		};
-	}
-
-	for (const nested of Object.values(record)) {
-		const found = findNamedEntity(nested);
-		if (found?.name || found?.id) {
-			return found;
-		}
-	}
-
-	return undefined;
-}
-
 function loadState(rootDir: string) {
 	const statePath = resolve(rootDir, BOOTSTRAP_STATE_PATH);
 	if (!existsSync(statePath)) {
@@ -589,15 +548,6 @@ function run(cmd: string[], cwd: string) {
 
 	if (result.exitCode !== 0) {
 		throw new Error(`Command failed: ${cmd.join(" ")}`);
-	}
-}
-
-function runJson(cmd: string[], cwd: string) {
-	const output = runCapture(cmd, cwd);
-	try {
-		return JSON.parse(output.stdout);
-	} catch {
-		throw new Error(`Expected JSON output from: ${cmd.join(" ")}`);
 	}
 }
 
